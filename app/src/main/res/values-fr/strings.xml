@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ici</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="connect">Connexion</string>
+    <string name="google_maps_key" translatable="false"></string>
+    <string name="login">Identifiant</string>
+    <string name="my_location">Mon emplacement</string>
+    <string name="navigation_drawer_close">Fermer le volet de navigation</string>
+    <string name="navigation_drawer_open">Ouvrir le volet de navigation</string>
+    <string name="password">Mot de passe</string>
+</resources>
