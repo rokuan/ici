@@ -35,9 +35,6 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapActivity"
-            android:label="@string/title_activity_map" />
-        <activity
             android:name=".PlaceActivity"
             android:label="@string/title_activity_place"
             android:theme="@style/AppTheme.NoActionBar"></activity>

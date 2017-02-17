@@ -1,10 +1,15 @@
 package com.ideal.apps.ici;
 
+import android.*;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.DrawerLayout;
@@ -23,6 +28,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.drive.Drive;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.AutocompletePredictionBuffer;
 import com.google.android.gms.location.places.Places;
@@ -30,13 +36,17 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class PlaceActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     private GoogleApiClient googleApiClient;
     private GoogleMap mMap;
+    private Location mLastLocation;
+    private Marker myMarker;
     private PlaceAdapter placeAdapter;
 
     @Override
@@ -61,9 +71,10 @@ public class PlaceActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);
 
         googleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this/* OnConnectionFailedListener */)
+                .addConnectionCallbacks(this)
+                .enableAutoManage(this, this)
                 .addApi(Places.GEO_DATA_API)
-                .addScope(Drive.SCOPE_FILE)
+                .addApi(LocationServices.API)
                 .build();
     }
 
@@ -157,6 +168,43 @@ public class PlaceActivity extends AppCompatActivity
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    private void initLocation() {
+        if(mMap == null || mLastLocation == null){
+            return;
+        }
+        LatLng myLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        myMarker = mMap.addMarker(new MarkerOptions().position(myLocation)
+                .title(getString(R.string.my_location))
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
+                .draggable(true));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
+    }
+
+    private void findNearestPlaces(){
+
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 
     @Override
