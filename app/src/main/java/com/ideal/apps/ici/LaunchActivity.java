@@ -1,5 +1,6 @@
 package com.ideal.apps.ici;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -9,8 +10,7 @@ import android.os.Bundle;
 
 import com.ideal.apps.ici.service.AccountService;
 
-public class LaunchActivity extends AppCompatActivity {
-    protected final Intent serviceIntent = new Intent(this, AccountService.class);
+public class LaunchActivity extends Activity {
     private boolean bound = false;
     private AccountService service;
     private ServiceConnection connection = new ServiceConnection() {
@@ -35,12 +35,14 @@ public class LaunchActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_launch);
+        final Intent serviceIntent = new Intent(this, AccountService.class);
         startService(serviceIntent);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        final Intent serviceIntent = new Intent(this, AccountService.class);
         bindService(serviceIntent, connection, BIND_AUTO_CREATE);
     }
 

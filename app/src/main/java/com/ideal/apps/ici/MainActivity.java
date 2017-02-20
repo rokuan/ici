@@ -3,6 +3,7 @@ package com.ideal.apps.ici;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.EditText;
 
 import butterknife.BindView;
@@ -20,13 +21,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
-        Intent mapIntent = new Intent(this, PlaceActivity.class);
-        startActivity(mapIntent);
     }
 
     @OnClick(R.id.connect_button)
     public void connect(){
+        System.out.println("Clicked");
         if(login.getText().toString().isEmpty()){
             // TODO:
             login.setError("Login cannot be empty");
@@ -36,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
             password.setError("Password cannot be empty");
             return;
         }
+        System.out.println("Launching");
         Intent i = new Intent(this, PlaceActivity.class);
-        this.startActivity(i);
+        startActivity(i);
     }
 }

@@ -5,10 +5,12 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -28,6 +30,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -42,13 +45,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlaceActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, OnMapReadyCallback {
     private GoogleApiClient googleApiClient;
     private GoogleMap mMap;
     private Location mLastLocation;
     private Marker myMarker;
     private AddressAdapter addressAdapter;
     private ListView resultsView;
+    private LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,12 +71,10 @@ public class PlaceActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        /*googleApiClient = new GoogleApiClient.Builder(this)
+        googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
-                .enableAutoManage(this, this)
-                .addApi(Places.GEO_DATA_API)
                 .addApi(LocationServices.API)
-                .build();*/
+                .build();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -89,6 +91,18 @@ public class PlaceActivity extends AppCompatActivity
                 updateLocation(selectedAddress);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        googleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        googleApiClient.disconnect();
     }
 
     @Override
@@ -170,7 +184,10 @@ public class PlaceActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        mMap.setBuildingsEnabled(false);
+        mMap.setIndoorEnabled(false);
+
+        /*if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -180,14 +197,14 @@ public class PlaceActivity extends AppCompatActivity
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             mMap.setMyLocationEnabled(true);
-        }
+        }*/
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
         //myMarker = mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         myMarker = mMap.addMarker(new MarkerOptions().position(sydney)
                 .title(getString(R.string.my_location))
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
+                //.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
                 .draggable(true));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 11.0f));
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
@@ -208,17 +225,49 @@ public class PlaceActivity extends AppCompatActivity
         });
     }
 
-    private void updateLocation(Address address){
+    private void updateLocation(Address address) {
         LatLng location = new LatLng(address.getLatitude(), address.getLongitude());
-        myMarker.setPosition(location);
         updateLocation(location);
     }
 
-    private void updateLocation(LatLng position){
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+    private void updateLocation(Location location) {
+        updateLocation(new LatLng(location.getLatitude(), location.getLongitude()));
     }
 
-    private void findNearestPlaces(){
+    private void updateLocation(LatLng position) {
+        myMarker.setPosition(position);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+        findNearestPlaces();
+    }
+
+    private void findNearestPlaces() {
+        Snackbar.make(findViewById(android.R.id.content), "Now fetching the places around ...", Snackbar.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+
+        if(mLastLocation != null){
+            updateLocation(mLastLocation);
+        } else {
+            //Snackbar.make(getVi, "Unable to get your current location", Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(findViewById(android.R.id.content), "Unable to get your current location", Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
 
     }
 
