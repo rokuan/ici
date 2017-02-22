@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.ideal.apps.ici.service.AccountService;
@@ -46,6 +45,15 @@ public class LaunchActivity extends Activity {
         bindService(serviceIntent, connection, BIND_AUTO_CREATE);
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(bound){
+            unbindService(connection);
+            bound = false;
+        }
+    }
+
     protected void redirect(){
         Class<?> targetActivity;
 
@@ -57,13 +65,5 @@ public class LaunchActivity extends Activity {
 
         Intent i = new Intent(this, targetActivity);
         startActivity(i);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if(bound){
-            unbindService(connection);
-        }
     }
 }

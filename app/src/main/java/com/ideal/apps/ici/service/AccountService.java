@@ -7,6 +7,15 @@ import android.os.IBinder;
 
 import com.ideal.apps.ici.api.APIs;
 import com.ideal.apps.ici.api.IciService;
+import com.ideal.apps.ici.api.SimpleCallback;
+import com.ideal.apps.ici.api.message.AuthenticationMessage;
+import com.ideal.apps.ici.api.result.TokenResult;
+
+import java.io.IOException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AccountService extends Service {
     public class AccountBinder extends Binder {
@@ -17,6 +26,8 @@ public class AccountService extends Service {
 
     private static final IciService ICI_API = APIs.getIciService();
     private AccountBinder binder = new AccountBinder();
+    private boolean authenticated = false;
+    private String token;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -30,6 +41,27 @@ public class AccountService extends Service {
     }
 
     public boolean isAuthenticated(){
-        return false;
+        return authenticated;
+    }
+
+    public void signIn(String login, String password, final SimpleCallback<String> callback){
+        AuthenticationMessage message = new AuthenticationMessage(login, password);
+        ICI_API.authenticate(message).enqueue(new Callback<TokenResult>() {
+            @Override
+            public void onResponse(Call<TokenResult> call, Response<TokenResult> response) {
+                TokenResult body = response.body();
+                if(body.isSuccess()) {
+                    authenticated = true;
+                    token = body.getResult();
+                }
+                callback.process(body);
+            }
+
+            @Override
+            public void onFailure(Call<TokenResult> call, Throwable t) {
+                authenticated = false;
+                callback.onFailure(t);
+            }
+        });
     }
 }
