@@ -1,28 +1,23 @@
 package com.ideal.apps.ici;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.EditText;
 
-import com.ideal.apps.ici.api.IciService;
 import com.ideal.apps.ici.api.SimpleCallback;
-import com.ideal.apps.ici.api.result.TokenResult;
 import com.ideal.apps.ici.service.AccountService;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     @BindView(R.id.login_text)
     protected EditText loginView;
     @BindView(R.id.password_text)
@@ -86,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(bound) {
+            // TODO: disable the interface
             service.signIn(username, password, new SimpleCallback<String>() {
                 @Override
                 public void onSuccess(String result) {

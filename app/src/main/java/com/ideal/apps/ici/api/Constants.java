@@ -17,5 +17,6 @@ public class Constants {
 
     public static class Path {
         public static final String PLACE_ID = "placeId";
+        public static final String EVENT_ID = "eventId";
     }
 }
